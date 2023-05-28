@@ -1,0 +1,68 @@
+html {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.admin__header {
+    background-color: black;
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.admin__logo {
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    margin-left: 20px;
+    text-decoration: none;
+}
+
+.admin__logo:hover {
+    text-decoration: underline;
+}
+
+.admin__base {
+    background-color: white;
+    width: 100%;
+    flex: 1;
+    display: flex;
+}
+
+.admin__aside {
+    background-color: gray;
+    width: 400px;
+    padding: 20px;
+}
+
+.admin__menu-h2 {
+    font-weight: bold;
+    font-size: 24px;
+}
+
+.admin__partition {
+    width: 100%;
+    border-top: 2px solid black;
+    margin: 10px 0;
+}
+
+.admin__main {
+    background-color: lightgray;
+    flex: 1;
+}
+
+.admin__menu p {
+    font-size: 14px;
+}
+
+.admin__footer {
+    background-color: black;
+    width: 100%;
+    height: 100px;
+}
