@@ -46,6 +46,10 @@ def put_books_count_and_average_ratings():
     response = dbservice.update_books_count_and_average_ratings()
     return json_response(response)
 
+
+
+
+
 """ --------------- BOOKS FREQUENCY --------------- """
 
 # Подсчёт частоты появления количества оценок у пользователей
@@ -53,6 +57,15 @@ def put_books_count_and_average_ratings():
 def post_frequency_of_books_table():
     response = dbservice.create_frequency_of_books_table()
     return json_response(response)
+
+
+
+
+
+
+
+
+
 
 """ ------------------------------- USERS ------------------------------- """
 
@@ -68,6 +81,12 @@ def put_users_count_and_average_ratings():
     response = dbservice.update_users_count_and_average_ratings()
     return json_response(response)
 
+
+
+
+
+
+
 """ --------------- USERS FREQUENCY --------------- """
 
 # Подсчёт частоты появления количества оценок у пользователей
@@ -76,6 +95,15 @@ def post_frequency_of_users_table():
     response = dbservice.create_frequency_of_users_table()
     return json_response(response)
 
+
+
+
+
+
+
+
+
+
 """ ------------------------------- RATINGS ------------------------------- """
 
 # Создание таблицы оценок
@@ -83,6 +111,37 @@ def post_frequency_of_users_table():
 # def post_ratings_table():
 #     response = dbservice.create_ratings_table()
 #     return json_response(response)
+
+
+
+
+
+
+
+
+
+
+""" ------------------------------- PEARSON CORRELATION ------------------------------- """
+
+# Получение рекомендаций пользователю по коэффициенту корреляции Пирсона
+@app.route('/api/create_prediction_Pearson', methods=['POST'])
+def post_prediction_Pearson():
+    if not request.json or not 'id' in request.json:
+        return bad_request()
+    else:
+        response = dbservice.create_prediction_Pearson(request.json['id'])
+        return json_response(response)
+
+# Тестирование рекомендаций по коэффициенту корреляции Пирсона
+@app.route('/api/testing_prediction_Pearson', methods=['GET'])
+def get_prediction_Pearson():
+    response = dbservice.testing_prediction_Pearson()
+    return json_response(response)
+
+
+
+
+
 
 
 
