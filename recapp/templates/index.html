@@ -20,14 +20,36 @@
         <div class="admin__partition"></div>
         <div class="admin__menu">
           <p id="">Численность пользователей поставивших определенное количество оценок</p>
+          <p id="">Рекомендации пользавателю по id</p>
         </div>
       </aside>
       <main class="admin__main">
-        <div>
-          Выберите пункт меню.
+        <!-- <div class="admin__main-container-placeholder">
+          <div class="admin__main-placeholder">
+            Выберите пункт меню.
+          </div>
+        </div> -->
+        <div class="admin__main-container">
+          <h1 class="admin__h1"> Рекомендации пользавателю по id </h1>
+          <div class="admin__content">
+            <div class="admin__form">
+              <div>
+                <label for="user_id">Id пользователя:</label>
+                <input class="admin__input-number" type="number" id="user_id">
+              </div>
+              <div>
+                <input class="admin__input-button" type="button" value="Запрос">
+              </div>
+            </div>
+            <div class="admin__result">
+              <h2>Результаты:</h2>
+              <div class="admin__result-content">
+                <img src="https://images.gr-assets.com/books/1417900846s/29579.jpg" alt="">
+              </div>
+            </div>
+          </div>
         </div>
-        <!-- <h1 class="admin__h1"></h1>
-        <div class="admin__content"></div> -->
+        
       </main>
     </div>
     <footer class="admin__footer">
