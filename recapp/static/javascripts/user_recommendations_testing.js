@@ -11,23 +11,27 @@ menu_user_recommendation_testing_button.addEventListener("click", function (e) {
         <div class="admin__form">
             <div>
                 <label for="count_rating">Минимальное количество оценок от пользователя:</label>
-                <input class="admin__input-number" type="number" min="1" id="count_rating">
+                <input class="admin__input-number" type="number" min="1" value="100" id="count_rating">
             </div>
             <div>
                 <label for="number_of_crossings">Минимальное количество пересечений между пользователями:</label>
-                <input class="admin__input-number" type="number" min="1" id="number_of_crossings">
+                <input class="admin__input-number" type="number" min="1" value="3" id="number_of_crossings">
             </div>
             <div>
                 <label for="correlation">Минимальное число корреляции:</label>
-                <input class="admin__input-number" type="number" step="0.01" max="1" min="0" id="correlation">
+                <input class="admin__input-number" type="number" step="0.01" max="1" min="0" value="0.3" id="correlation">
+            </div>
+            <div>
+                <label for="normalization_number">Число, относительно которого происходит нормализация:</label>
+                <input class="admin__input-number" type="number" step="0.01" value="3.8" id="normalization_number">
             </div>
             <div>
                 <label for="percentage_tested_users">Процент пользователей для тестирования:</label>
-                <input class="admin__input-number" type="number" step="0.01" max="1" min="0" id="percentage_tested_users">
+                <input class="admin__input-number" type="number" step="0.01" max="1" min="0" value="0.2" id="percentage_tested_users">
             </div>
             <div>
                 <label for="percentage_tested_ratings">Процент оценок пользователей для тестирования:</label>
-                <input class="admin__input-number" type="number" step="0.01" max="1" min="0" id="percentage_tested_ratings">
+                <input class="admin__input-number" type="number" step="0.01" max="1" min="0" value="0.25" id="percentage_tested_ratings">
             </div>
 
             <div>
@@ -55,14 +59,15 @@ menu_user_recommendation_testing_button.addEventListener("click", function (e) {
         let count_rating = document.getElementById('count_rating').value;
         let number_of_crossings = document.getElementById('number_of_crossings').value;
         let correlation = document.getElementById('correlation').value;
+        let normalization_number = document.getElementById('normalization_number').value
         let percentage_tested_users = document.getElementById('percentage_tested_users').value;
         let percentage_tested_ratings = document.getElementById('percentage_tested_ratings').value;
-
 
 
         let user_formdata = JSON.stringify({count_rating: count_rating, 
                                             number_of_crossings: number_of_crossings,
                                             correlation: correlation,
+                                            normalization_number: normalization_number,
                                             percentage_tested_users: percentage_tested_users,
                                             percentage_tested_ratings: percentage_tested_ratings});
 
@@ -71,6 +76,7 @@ menu_user_recommendation_testing_button.addEventListener("click", function (e) {
         if (formparse['count_rating'] != "" && 
             formparse['number_of_crossings'] != "" && 
             formparse['correlation'] != "" && 
+            formparse['normalization_number'] != "" &&
             formparse['percentage_tested_users'] != "" && 
             formparse['percentage_tested_ratings'] != "") {
             fetch("/api/testing_prediction_Pearson",

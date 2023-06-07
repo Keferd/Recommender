@@ -126,19 +126,19 @@ def post_frequency_of_users_table():
 # Получение рекомендаций пользователю по коэффициенту корреляции Пирсона
 @app.route('/api/create_prediction_Pearson', methods=['POST'])
 def post_prediction_Pearson():
-    if not request.json or not 'id' in request.json:
+    if not request.json or not 'id' in request.json or not 'count_rating' in request.json or not 'number_of_crossings' in request.json or not 'correlation' in request.json or not 'normalization_number' in request.json or not 'count_of_output' in request.json:
         return bad_request()
     else:
-        response = dbservice.create_prediction_Pearson(request.json['id'])
+        response = dbservice.create_prediction_Pearson(request.json['id'],request.json['count_rating'],request.json['number_of_crossings'],request.json['correlation'],request.json['normalization_number'],request.json['count_of_output'])
         return json_response(response)
 
 # Тестирование рекомендаций по коэффициенту корреляции Пирсона
 @app.route('/api/testing_prediction_Pearson', methods=['POST'])
 def get_testing_prediction_Pearson():
-    if not request.json or not 'count_rating' in request.json or not 'number_of_crossings' in request.json or not 'correlation' in request.json or not 'percentage_tested_users' in request.json or not 'percentage_tested_ratings' in request.json:
+    if not request.json or not 'count_rating' in request.json or not 'number_of_crossings' in request.json or not 'correlation' in request.json or not 'normalization_number' in request.json or not 'percentage_tested_users' in request.json or not 'percentage_tested_ratings' in request.json:
         return bad_request()
     else:
-        response = dbservice.testing_prediction_Pearson(request.json['count_rating'],request.json['number_of_crossings'],request.json['correlation'],request.json['percentage_tested_users'],request.json['percentage_tested_ratings'])
+        response = dbservice.testing_prediction_Pearson(request.json['count_rating'],request.json['number_of_crossings'],request.json['correlation'],request.json['normalization_number'],request.json['percentage_tested_users'],request.json['percentage_tested_ratings'])
         return json_response(response)
 
 

@@ -326,9 +326,9 @@ def update_cumulative_frequency_of_users():
 """ ------------------------------- PEARSON CORRELATION ------------------------------- """
 
 # Получение рекомендаций пользователю по коэффициенту корреляции Пирсона
-def create_prediction_Pearson(id):
-    # Берутся все пользователи c количеством оценок 10 и больше, кроме выбранного пользователя
-    rows_users = db.session.execute(f"SELECT id FROM users WHERE count_rating >= 10 AND id != '{id}'").fetchall()
+def create_prediction_Pearson(id, count_rating, required_number_of_crossings, required_correlation, normalization_number, count_of_output):
+    # Берутся все пользователи c количеством оценок count_rating и больше, кроме выбранного пользователя
+    rows_users = db.session.execute(f"SELECT id FROM users WHERE count_rating >= '{count_rating}' AND id != '{id}'").fetchall()
     rows_of_selected_user = db.session.execute(f"SELECT book_id, rating FROM ratings WHERE user_id = '{id}'").fetchall()
     try:
         con = sqlite3.connect("recommender_books.sqlite")
@@ -365,11 +365,11 @@ def create_prediction_Pearson(id):
         # Пользователи с недостаточным количеством пересечений убираются
         # Для пользователей с пересечениями подсчитать близость 
         # Нормализация происходит относительно константы
-        normalization_number = 3.5
+        normalization_number = float(normalization_number)
         # Минимальное необходимое количество пересечений
-        required_number_of_crossings = 2
+        required_number_of_crossings = int(required_number_of_crossings)
         # Минимальное необходимое значение корреляции
-        required_correlation = 0.3
+        required_correlation = float(required_correlation)
 
         ratings_dict_copy = ratings_dict.copy()
 
@@ -451,7 +451,7 @@ def create_prediction_Pearson(id):
 
         
 
-        top_recommendation = db.session.execute(f"SELECT book_id FROM recommendations_Pearson WHERE user_id = {id} ORDER BY recommendation DESC, number_of_users DESC LIMIT 20").fetchall()
+        top_recommendation = db.session.execute(f"SELECT book_id FROM recommendations_Pearson WHERE user_id = '{id}' ORDER BY recommendation DESC, number_of_users DESC LIMIT '{int(count_of_output)}'").fetchall()
 
         # Составляется единый запрос для всех book_id
         query = "SELECT * FROM books WHERE id IN ("
@@ -499,7 +499,7 @@ def create_prediction_Pearson(id):
 
 
 # Тестирование рекомендаций по коэффициенту корреляции Пирсона
-def testing_prediction_Pearson(count_rating, required_number_of_crossings, required_correlation, percentage_tested_users, percentage_tested_ratings):
+def testing_prediction_Pearson(count_rating, required_number_of_crossings, required_correlation, normalization_number, percentage_tested_users, percentage_tested_ratings):
     # Берутся все пользователи c количеством оценок 10 и больше
     rows_users = db.session.execute(f"SELECT id FROM users WHERE count_rating >= '{count_rating}'").fetchall()
     try:
@@ -580,7 +580,7 @@ def testing_prediction_Pearson(count_rating, required_number_of_crossings, requi
 
 
         # Нормализация происходит относительно константы
-        normalization_number = 3.8
+        normalization_number = float(normalization_number)
         # Количество тестируемых пользователей
         users_count = 0
         # Количество тестируемых оценок
