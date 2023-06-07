@@ -1,0 +1,37 @@
+.admin__book {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    margin-bottom: 20px;
+    background-color: gainsboro;
+}
+
+.admin__book_inf {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.admin__book_name_1 {
+    font-size: 16px;
+}
+
+.admin__book_name_2 {
+    font-size: 14px;
+    color: grey
+}
+
+.admin__book_other {
+    display: flex;
+    flex-direction: row;
+}
+
+.admin__book_year {
+    font-size: 14px;
+}
+
+.admin__book_author {
+    margin-left: 5px;
+    font-size: 14px;
+}

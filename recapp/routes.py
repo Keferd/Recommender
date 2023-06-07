@@ -133,10 +133,13 @@ def post_prediction_Pearson():
         return json_response(response)
 
 # Тестирование рекомендаций по коэффициенту корреляции Пирсона
-@app.route('/api/testing_prediction_Pearson', methods=['GET'])
-def get_prediction_Pearson():
-    response = dbservice.testing_prediction_Pearson()
-    return json_response(response)
+@app.route('/api/testing_prediction_Pearson', methods=['POST'])
+def get_testing_prediction_Pearson():
+    if not request.json or not 'count_rating' in request.json or not 'number_of_crossings' in request.json or not 'correlation' in request.json or not 'percentage_tested_users' in request.json or not 'percentage_tested_ratings' in request.json:
+        return bad_request()
+    else:
+        response = dbservice.testing_prediction_Pearson(request.json['count_rating'],request.json['number_of_crossings'],request.json['correlation'],request.json['percentage_tested_users'],request.json['percentage_tested_ratings'])
+        return json_response(response)
 
 
 

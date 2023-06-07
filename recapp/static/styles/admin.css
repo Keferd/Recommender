@@ -96,65 +96,6 @@ body {
     font-size: 48px;
 }
 
-/* Рекомендации пользавателю по id */
-
-.admin__main-container {
-    width: 100%;
-    height: 100%;
-    padding-bottom: 10px;
-}
-
-.admin__h1 {
-    font-size: 32px;
-}
-
-.admin__content {
-    margin-top: 10px;
-    width: 100%;
-}
-
-.admin__form {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.admin__form div {
-    margin-bottom: 10px;
-}
-
-.admin__input-number {
-    height: 20px;
-    width: 200px;
-    border: 2px solid black;
-    border-radius: 5px;
-    padding: 0 5px;
-}
-
-.admin__input-button {
-    height: 30px;
-    background-color: white;
-    border: 2px solid black;
-    color: black;
-    border-radius: 5px;
-    padding: 0 5px
-}
-
-.admin__input-button:hover {
-    background-color: black;
-    color: white;
-    cursor: pointer;
-}
-
-.admin__result {
-    border-top: 2px solid black;
-    padding: 10px 0;
-}
-
-.admin__result-content {
-    padding: 10px 0;
-}
-
 /* FOOTER */
 
 .admin__footer {
