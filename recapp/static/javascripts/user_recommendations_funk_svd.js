@@ -1,33 +1,17 @@
-let menu_user_recommendation_button = document.getElementById("admin__menu_user_recommendation");
+let menu_user_recommendation_funk_svd_button = document.getElementById("admin__menu_user_recommendation_funk_svd");
 
-menu_user_recommendation_button.addEventListener("click", function (e) {
+menu_user_recommendation_funk_svd_button.addEventListener("click", function (e) {
 
     let area = document.getElementById('admin__main')
     
     area.innerHTML = `
         <div class="admin__main-container">
-        <h1 class="admin__h1"> Рекомендации пользователю по корреляции Пирсона </h1>
+        <h1 class="admin__h1"> Рекомендации пользователю по Funk SVD </h1>
         <div class="admin__content">
         <div class="admin__form">
             <div>
                 <label for="user_recommendation_id">Id пользователя:</label>
                 <input class="admin__input-number" type="number" min="1" id="user_recommendation_id">
-            </div>
-            <div>
-                <label for="count_rating">Минимальное количество оценок от пользователя:</label>
-                <input class="admin__input-number" type="number" min="1" value="10" id="count_rating">
-            </div>
-            <div>
-                <label for="number_of_crossings">Минимальное количество пересечений между пользователями:</label>
-                <input class="admin__input-number" type="number" min="1" value="3" id="number_of_crossings">
-            </div>
-            <div>
-                <label for="correlation">Минимальное число корреляции:</label>
-                <input class="admin__input-number" type="number" step="0.01" max="1" min="0" value="0.3" id="correlation">
-            </div>
-            <div>
-                <label for="normalization_number">Число, относительно которого происходит нормализация:</label>
-                <input class="admin__input-number" type="number" step="0.01" value="3.8" id="normalization_number">
             </div>
             <div>
                 <label for="count_of_output">Сколько вывести рекомендованных книг:</label>
@@ -56,23 +40,15 @@ menu_user_recommendation_button.addEventListener("click", function (e) {
     user_recommendation_button.addEventListener("click", function (e) {
 
         let user_id = document.getElementById('user_recommendation_id').value;
-        let count_rating = document.getElementById('count_rating').value;
-        let number_of_crossings = document.getElementById('number_of_crossings').value;
-        let correlation = document.getElementById('correlation').value;
-        let normalization_number = document.getElementById('normalization_number').value
         let count_of_output = document.getElementById('count_of_output').value
 
         let user_formdata = JSON.stringify({id: user_id,
-                                            count_rating: count_rating, 
-                                            number_of_crossings: number_of_crossings,
-                                            correlation: correlation,
-                                            normalization_number: normalization_number,
                                             count_of_output: count_of_output});
 
         formparse = JSON.parse(user_formdata);
 
-        if (formparse['id'] != "") {
-            fetch("/api/create_prediction_Pearson",
+        if (formparse['id'] != "" && formparse['count_of_output'] != "") {
+            fetch("/api/create_prediction_Funk_SVD",
             {
                 method: "POST",
                 body: user_formdata,

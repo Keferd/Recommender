@@ -437,12 +437,12 @@ def create_prediction_Pearson(id, count_rating, required_number_of_crossings, re
         recommendations_list_update = []
         for book_rating_id in recommendations:
             if book_rating_id in recommendations_list_existed:
-                recommendations_list_update.append((recommendations[book_rating_id]["recommendation"], recommendations[book_rating_id]["number_of_users"], book_rating_id))
+                recommendations_list_update.append((recommendations[book_rating_id]["recommendation"], recommendations[book_rating_id]["number_of_users"], book_rating_id, id))
             else:
                 recommendations_list_insert.append((id, book_rating_id, recommendations[book_rating_id]["recommendation"], recommendations[book_rating_id]["number_of_users"]))
 
 
-        query = "UPDATE recommendations_Pearson SET recommendation = ?, number_of_users = ? WHERE book_id = ?"
+        query = "UPDATE recommendations_Pearson SET recommendation = ?, number_of_users = ? WHERE book_id = ? AND user_id = ?"
         cursor.executemany(query, recommendations_list_update)
         con.commit()
 
@@ -468,8 +468,6 @@ def create_prediction_Pearson(id, count_rating, required_number_of_crossings, re
         books = cursor.fetchall()
 
         result = []
-        # for row in books:
-        #     result.append(dict(row))
         for row in books:
             dict_item = {}
             for index, value in enumerate(row):
@@ -489,6 +487,29 @@ def create_prediction_Pearson(id, count_rating, required_number_of_crossings, re
 
 
 
+
+
+
+
+
+
+
+def create_global_mean():
+    try:
+        rows_ratings = db.session.execute(f"SELECT * FROM ratings").fetchall()
+
+        r_m = []
+        for item in rows_ratings:
+            r_m.append(item[2])
+        global_mean = statistics.mean(r_m)
+
+        return global_mean
+    except Exception as e:
+        db.session.rollback()
+        return {'message': str(e)}
+    
+
+# Funk SVD
 def create_tables_funk_svd(factors, learning_rate, regularization, gradient_count):
     try:
         rows_ratings = db.session.execute(f"SELECT * FROM ratings").fetchall()
@@ -621,6 +642,124 @@ def create_tables_funk_svd(factors, learning_rate, regularization, gradient_coun
 
 
 
+
+
+
+
+
+
+
+# Рекомендации по Funk SVD
+def create_prediction_Funk_SVD(id, count_of_output):
+    try:
+        user_book_id = db.session.execute(f"SELECT book_id FROM ratings WHERE user_id = '{id}'").fetchall()
+        users_p_list = db.session.execute(f"SELECT factor_id, value FROM users_p WHERE user_id = '{id}'").fetchall()
+        users_deviation = db.session.execute(f"SELECT deviation FROM users_deviation WHERE user_id = '{id}'").fetchone()
+
+
+        global_mean = create_global_mean()
+
+        con = sqlite3.connect("recommender_books.sqlite")
+        cursor = con.cursor()
+
+        query = "SELECT * FROM books_deviation WHERE book_id NOT IN ("
+        for index, item in enumerate(user_book_id):
+            if index == len(user_book_id) - 1:
+                query += str(item[0])
+            else:
+                query += str(item[0]) + ", "
+        query += ")"
+
+        cursor.execute(query)
+        books_deviation_list = cursor.fetchall()
+
+        query = "SELECT * FROM books_q WHERE book_id NOT IN ("
+        for index, item in enumerate(user_book_id):
+            if index == len(user_book_id) - 1:
+                query += str(item[0])
+            else:
+                query += str(item[0]) + ", "
+        query += ")"
+
+        cursor.execute(query)
+        books_q_list = cursor.fetchall()
+
+        books_q = {}
+        for item in books_q_list:
+            if item[0] not in books_q:
+                books_q[item[0]] = {}
+            books_q[item[0]][item[1]] = item[2]
+            
+
+        users_p = {}
+        for item in users_p_list:
+            users_p[item[0]] = item[1]
+
+        # Генерация рекомендаций 
+        recommendations = {}
+        for book_deviation in books_deviation_list:
+            book_id = book_deviation[0]
+            recommendations[book_id] = global_mean + users_deviation[0] + book_deviation[1]
+            for factor_id in users_p:
+                recommendations[book_id] += users_p[factor_id] * books_q[book_id][factor_id]
+
+        
+
+
+
+        # Определение существующих рекомендаций
+        recommendations_rows_existed = db.session.execute(f"SELECT book_id FROM recommendations_Funk_SVD WHERE user_id = '{id}'").fetchall()
+        recommendations_list_existed = []
+        for item in recommendations_rows_existed:
+           recommendations_list_existed.append(item[0])
+
+
+        # Разделение новых данных на данные для добавления и данные для обновления
+        recommendations_list_insert = []
+        recommendations_list_update = []
+        for book_rating_id in recommendations:
+            if book_rating_id in recommendations_list_existed:
+                recommendations_list_update.append((recommendations[book_rating_id], book_rating_id, id))
+            else:
+                recommendations_list_insert.append((id, book_rating_id, recommendations[book_rating_id]))
+
+
+        query = "UPDATE recommendations_Funk_SVD SET recommendation = ? WHERE book_id = ? AND user_id = ?"
+        cursor.executemany(query, recommendations_list_update)
+        con.commit()
+
+        query = "INSERT INTO recommendations_Funk_SVD (user_id, book_id, recommendation) VALUES (?, ?, ?)"
+        cursor.executemany(query, recommendations_list_insert)
+        con.commit()
+        
+
+
+        top_recommendation = db.session.execute(f"SELECT book_id FROM recommendations_Funk_SVD WHERE user_id = '{id}' ORDER BY recommendation DESC LIMIT '{int(count_of_output)}'").fetchall()
+
+        # Составляется единый запрос для всех book_id
+        query = "SELECT * FROM books WHERE id IN ("
+        for index, item in enumerate(top_recommendation):
+            if index == len(top_recommendation) - 1:
+                query += str(item[0])
+            else:
+                query += str(item[0]) + ", "
+        query += ")"
+
+        # Получаем все необходимые книги
+        cursor.execute(query)
+        books = cursor.fetchall()
+
+        result = []
+        for row in books:
+            dict_item = {}
+            for index, value in enumerate(row):
+                dict_item[cursor.description[index][0]] = value
+            result.append(dict_item)
+
+        return {'recommendations': result}
+    except Exception as e:
+        db.session.rollback()
+        return {'message': str(e)}
 
 
 
