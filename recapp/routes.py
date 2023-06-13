@@ -152,13 +152,21 @@ def post_prediction_Funk_SVD():
 
 # Тестирование рекомендаций по коэффициенту корреляции Пирсона
 @app.route('/api/testing_prediction_Pearson', methods=['POST'])
-def get_testing_prediction_Pearson():
+def post_testing_prediction_Pearson():
     if not request.json or not 'count_rating' in request.json or not 'number_of_crossings' in request.json or not 'correlation' in request.json or not 'normalization_number' in request.json or not 'percentage_tested_users' in request.json or not 'percentage_tested_ratings' in request.json:
         return bad_request()
     else:
         response = dbservice.testing_prediction_Pearson(request.json['count_rating'],request.json['number_of_crossings'],request.json['correlation'],request.json['normalization_number'],request.json['percentage_tested_users'],request.json['percentage_tested_ratings'])
         return json_response(response)
 
+# Тестирование рекомендаций по Funk SVD
+@app.route('/api/testing_prediction_Funk_SVD', methods=['POST'])
+def post_testing_prediction_Funk_SVD():
+    if not request.json or not 'factors' in request.json or not 'learning_rate' in request.json or not 'regularization' in request.json or not 'gradient_count' in request.json or not 'percentage_tested_ratings' in request.json:
+        return bad_request()
+    else:
+        response = dbservice.testing_prediction_Funk_SVD(request.json['factors'], request.json['learning_rate'], request.json['regularization'], request.json['gradient_count'], request.json['percentage_tested_ratings'])
+        return json_response(response)
 
 
 

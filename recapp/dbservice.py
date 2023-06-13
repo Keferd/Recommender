@@ -988,3 +988,147 @@ def testing_prediction_Pearson(count_rating, required_number_of_crossings, requi
         return {'message': str(e)}
     
 
+
+
+def testing_prediction_Funk_SVD(factors, learning_rate, regularization, gradient_count, percentage_tested_ratings):
+    try:
+        rows_ratings = db.session.execute(f"SELECT * FROM ratings").fetchall()
+        rows_users = db.session.execute(f"SELECT id, average_rating FROM users").fetchall()
+        rows_books = db.session.execute(f"SELECT id, average_rating FROM books").fetchall()
+
+        random.shuffle(rows_ratings)
+
+        # Разделение списка оценок на исходные и тестовые данные
+        ratings_len = len(rows_ratings)
+        percentage_len = ratings_len * float(percentage_tested_ratings)
+        initial_ratings_rows = []
+        testing_ratings_rows = []
+        for i in range(ratings_len):
+            if i < percentage_len:
+                testing_ratings_rows.append(rows_users[i])
+            else:
+                initial_ratings_rows.append(rows_users[i])
+
+
+        # Нахождение глобального среднего
+        r_m = []
+        for item in initial_ratings_rows:
+            r_m.append(item[2])
+        global_mean = statistics.mean(r_m)
+
+        # Константы
+        factors = int(factors)
+        learning_rate = float(learning_rate)
+        regularization = float(regularization)
+        gradient_count = int(gradient_count)
+
+        # Матрица факторов пользователей
+        users_p = {}
+        users_dev = {}
+        for item in rows_users:
+            users_p[item[0]] = {}
+            for i in range(factors):
+                users_p[item[0]][i] = random.uniform(-1, 1)
+            users_dev[item[0]] = item[1] - global_mean
+
+        # Матрица факторов элементов
+        books_q = {}
+        books_dev = {}
+        for item in rows_books:
+            books_q[item[0]] = {}
+            for i in range(factors):
+                books_q[item[0]][i] = random.uniform(-1, 1)
+            books_dev[item[0]] = item[1] - global_mean
+
+        # Таблица для результатов тестов
+        rmse = []
+
+        # Градиентный спуск
+        rat_len = initial_ratings_rows.__len__()
+        for grad in range(gradient_count):
+            for item in initial_ratings_rows:
+                user_id = item[1]
+                book_id = item[0] 
+                rating = item[2]
+                rating_prediction = global_mean + users_dev[user_id] + books_dev[book_id]
+                for i in range(factors):
+                    rating_prediction += users_p[user_id][i] * books_q[book_id][i]
+                e = rating - rating_prediction
+                users_dev[user_id] += learning_rate * (e - regularization * users_dev[user_id])
+                books_dev[book_id] += learning_rate * (e - regularization * books_dev[book_id])
+                for i in range(factors):
+                    users_p[user_id][i] += learning_rate * (e * books_q[book_id][i] - regularization * users_p[user_id][i])
+                    books_q[book_id][i] += learning_rate * (e * users_p[user_id][i] - regularization * books_q[book_id][i])
+            
+            deviation = 0
+            for item in initial_ratings_rows:
+                user_id = item[1]
+                book_id = item[0] 
+                rating = item[2]  
+                rating_prediction = global_mean + users_dev[user_id] + books_dev[book_id]
+                for i in range(factors):
+                    rating_prediction += users_p[user_id][i] * books_q[book_id][i]
+                deviation += (((rating - rating_prediction)**2)/rat_len) 
+            deviation = deviation**(0.5)
+
+            print("Итерация", grad+1)
+            print(deviation)
+            rmse.append(deviation)
+
+            learning_rate = learning_rate * 0.95
+            regularization = regularization * 1.02
+
+        
+        # Количество рекомендованннхы оценок
+        rating_recommendations_count = 0
+        # mae, mse, rmse
+        mae_metrics = 0
+        mse_metrics = 0
+        rmse_metrics = 0
+        mae_metrics_compared = 0
+        mse_metrics_compared = 0
+        rmse_metrics_compared = 0
+            
+        # Запрос списка средних значений для книг
+        books_avarage_ratings_list = db.session.execute(f"SELECT id, average_rating FROM books").fetchall()
+        books_avarage_ratings_dict = {}
+        for item in books_avarage_ratings_list:
+            books_avarage_ratings_dict[item[0]] = item[1]
+
+        for item in testing_ratings_rows:
+            test_user_id = item[0]
+            test_book_id = item[1]
+            test_rating = item[2]
+
+            recommendation = global_mean + users_dev[test_user_id] + books_dev[test_book_id]
+            for factor_id in users_p:
+                recommendation += users_p[test_user_id] * books_q[test_book_id]
+
+            mae_metrics += abs(recommendation - test_rating)
+            mse_metrics += (recommendation - test_rating)**2
+            mae_metrics_compared += abs(books_avarage_ratings_dict[test_book_id] - test_rating)
+            mse_metrics_compared += (books_avarage_ratings_dict[test_book_id] - test_rating)**2
+
+            rating_recommendations_count += 1
+
+        if rating_recommendations_count != 0:
+            mae_metrics = mae_metrics / rating_recommendations_count
+            mse_metrics = mse_metrics / rating_recommendations_count
+            rmse_metrics = mse_metrics**(0.5)
+            mae_metrics_compared = mae_metrics_compared / rating_recommendations_count
+            mse_metrics_compared = mse_metrics_compared / rating_recommendations_count
+            rmse_metrics_compared = mse_metrics_compared**(0.5)
+
+        result = {}
+        result["rating_recommendations_count"] = rating_recommendations_count
+        result["mae_metrics"] = mae_metrics
+        result["mae_metrics_compared"] = mae_metrics_compared
+        result["mse_metrics"] = mse_metrics
+        result["mse_metrics_compared"] = mse_metrics_compared
+        result["rmse_metrics"] = rmse_metrics
+        result["rmse_metrics_compared"] = rmse_metrics_compared
+
+        return {'testing': result}
+    except Exception as e:
+        db.session.rollback()
+        return {'message': str(e)}
