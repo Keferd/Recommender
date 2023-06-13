@@ -131,6 +131,16 @@ def post_prediction_Pearson():
     else:
         response = dbservice.create_prediction_Pearson(request.json['id'],request.json['count_rating'],request.json['number_of_crossings'],request.json['correlation'],request.json['normalization_number'],request.json['count_of_output'])
         return json_response(response)
+    
+# Funk SVD
+@app.route('/api/create_tables_funk_svd', methods=['POST'])
+def post_tables_funk_svd():
+    if not request.json or not 'factors' in request.json or not 'learning_rate' in request.json or not 'regularization' in request.json or not 'gradient_count' in request.json:
+        return bad_request()
+    else:
+        response = dbservice.create_tables_funk_svd(request.json['factors'], request.json['learning_rate'], request.json['regularization'], request.json['gradient_count'])
+        return json_response(response)
+
 
 # Тестирование рекомендаций по коэффициенту корреляции Пирсона
 @app.route('/api/testing_prediction_Pearson', methods=['POST'])

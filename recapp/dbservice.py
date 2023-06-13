@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import session, make_response, redirect, url_for, jsonify
 import bcrypt
 import random
+import statistics
 
 import sqlite3;
  
@@ -488,6 +489,137 @@ def create_prediction_Pearson(id, count_rating, required_number_of_crossings, re
 
 
 
+def create_tables_funk_svd(factors, learning_rate, regularization, gradient_count):
+    try:
+        rows_ratings = db.session.execute(f"SELECT * FROM ratings").fetchall()
+        rows_users = db.session.execute(f"SELECT id, average_rating FROM users").fetchall()
+        rows_books = db.session.execute(f"SELECT id, average_rating FROM books").fetchall()
+
+        # Нахождение глобального среднего
+        r_m = []
+        for item in rows_ratings:
+            r_m.append(item[2])
+        global_mean = statistics.mean(r_m)
+
+        # Константы
+        factors = int(factors)
+        learning_rate = float(learning_rate)
+        regularization = float(regularization)
+        gradient_count = int(gradient_count)
+
+        # Матрица факторов пользователей
+        users_p = {}
+        users_dev = {}
+        for item in rows_users:
+            users_p[item[0]] = {}
+            for i in range(factors):
+                users_p[item[0]][i] = random.uniform(-1, 1)
+            users_dev[item[0]] = item[1] - global_mean
+
+        # Матрица факторов элементов
+        books_q = {}
+        books_dev = {}
+        for item in rows_books:
+            books_q[item[0]] = {}
+            for i in range(factors):
+                books_q[item[0]][i] = random.uniform(-1, 1)
+            books_dev[item[0]] = item[1] - global_mean
+
+        # Таблица для результатов тестов
+        rmse = []
+
+        # Градиентный спуск
+        rat_len = rows_ratings.__len__()
+        for grad in range(gradient_count):
+            for item in rows_ratings:
+                user_id = item[1]
+                book_id = item[0] 
+                rating = item[2]
+                rating_prediction = global_mean + users_dev[user_id] + books_dev[book_id]
+                for i in range(factors):
+                    rating_prediction += users_p[user_id][i] * books_q[book_id][i]
+                e = rating - rating_prediction
+                users_dev[user_id] += learning_rate * (e - regularization * users_dev[user_id])
+                books_dev[book_id] += learning_rate * (e - regularization * books_dev[book_id])
+                for i in range(factors):
+                    users_p[user_id][i] += learning_rate * (e * books_q[book_id][i] - regularization * users_p[user_id][i])
+                    books_q[book_id][i] += learning_rate * (e * users_p[user_id][i] - regularization * books_q[book_id][i])
+            
+            deviation = 0
+            for item in rows_ratings:
+                user_id = item[1]
+                book_id = item[0] 
+                rating = item[2]  
+                rating_prediction = global_mean + users_dev[user_id] + books_dev[book_id]
+                for i in range(factors):
+                    rating_prediction += users_p[user_id][i] * books_q[book_id][i]
+                deviation += (((rating - rating_prediction)**2)/rat_len) 
+            deviation = deviation**(0.5)
+
+            print("Итерация", grad+1)
+            print(deviation)
+            rmse.append(deviation)
+
+            learning_rate = learning_rate * 0.95
+            regularization = regularization * 1.02
+
+        # Сохранение полученных таблиц
+        con = sqlite3.connect("recommender_books.sqlite")
+        cursor = con.cursor()
+
+        query = "DELETE FROM books_deviation"
+        cursor.execute(query)
+        con.commit()
+
+        query = "DELETE FROM users_deviation"
+        cursor.execute(query)
+        con.commit()
+
+        query = "DELETE FROM books_q"
+        cursor.execute(query)
+        con.commit()
+
+        query = "DELETE FROM users_p"
+        cursor.execute(query)
+        con.commit()
+
+        books_deviation = []
+        for key in books_dev:
+            books_deviation.append((key,books_dev[key]))
+        query = "INSERT INTO books_deviation (book_id, deviation) VALUES (?, ?)"
+        cursor.executemany(query, books_deviation)
+        con.commit()
+
+        users_deviation = []
+        for key in users_dev:
+            users_deviation.append((key,users_dev[key]))
+        query = "INSERT INTO users_deviation (user_id, deviation) VALUES (?, ?)"
+        cursor.executemany(query, users_deviation)
+        con.commit()
+
+        books_q_list = []
+        for book_key in books_q:
+            for factor_key in books_q[book_key]:
+                books_q_list.append((book_key, factor_key, books_q[book_key][factor_key]))
+        query = "INSERT INTO books_q (book_id, factor_id, value) VALUES (?, ?, ?)"
+        cursor.executemany(query, books_q_list)
+        con.commit()
+        
+        users_p_list = []
+        for user_key in users_p:
+            for factor_key in users_p[user_key]:
+                users_p_list.append((user_key, factor_key, users_p[user_key][factor_key]))
+        query = "INSERT INTO users_p (user_id, factor_id, value) VALUES (?, ?, ?)"
+        cursor.executemany(query, users_p_list)
+        con.commit()
+
+        return {'rmse': rmse}
+    except Exception as e:
+        db.session.rollback()
+        return {'message': str(e)}
+
+
+
 
 
 
@@ -630,12 +762,14 @@ def testing_prediction_Pearson(count_rating, required_number_of_crossings, requi
             # Для пользователей с пересечениями подсчитать близость 
             for user_rating_id in ratings_dict_copy:
                 number_of_crossings = 0
+                # Для нормализации по константе
                 sum_multiplied = 0
                 sum_selected_user = 0
                 sum_compared_user = 0
                 for book_rating_id in ratings_dict_copy[user_rating_id]["books"]:
                     if book_rating_id in ratings_dict_of_selected_user:
                         number_of_crossings += 1
+                        # Для нормализации по константе
                         sum_multiplied += (ratings_dict_copy[user_rating_id]["books"][book_rating_id] - normalization_number)*(ratings_dict_of_selected_user[book_rating_id] - normalization_number)
                         sum_selected_user += (ratings_dict_of_selected_user[book_rating_id] - normalization_number)**2
                         sum_compared_user += (ratings_dict_copy[user_rating_id]["books"][book_rating_id] - normalization_number)**2
@@ -713,3 +847,5 @@ def testing_prediction_Pearson(count_rating, required_number_of_crossings, requi
     except Exception as e:
         db.session.rollback()
         return {'message': str(e)}
+    
+
