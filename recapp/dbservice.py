@@ -1005,10 +1005,9 @@ def testing_prediction_Funk_SVD(factors, learning_rate, regularization, gradient
         testing_ratings_rows = []
         for i in range(ratings_len):
             if i < percentage_len:
-                testing_ratings_rows.append(rows_users[i])
+                testing_ratings_rows.append(rows_ratings[i])
             else:
-                initial_ratings_rows.append(rows_users[i])
-
+                initial_ratings_rows.append(rows_ratings[i])
 
         # Нахождение глобального среднего
         r_m = []
@@ -1040,8 +1039,6 @@ def testing_prediction_Funk_SVD(factors, learning_rate, regularization, gradient
                 books_q[item[0]][i] = random.uniform(-1, 1)
             books_dev[item[0]] = item[1] - global_mean
 
-        # Таблица для результатов тестов
-        rmse = []
 
         # Градиентный спуск
         rat_len = initial_ratings_rows.__len__()
@@ -1068,12 +1065,11 @@ def testing_prediction_Funk_SVD(factors, learning_rate, regularization, gradient
                 rating_prediction = global_mean + users_dev[user_id] + books_dev[book_id]
                 for i in range(factors):
                     rating_prediction += users_p[user_id][i] * books_q[book_id][i]
-                deviation += (((rating - rating_prediction)**2)/rat_len) 
-            deviation = deviation**(0.5)
+                deviation += (rating - rating_prediction)**2
+            deviation = (deviation/rat_len)**(0.5)
 
             print("Итерация", grad+1)
             print(deviation)
-            rmse.append(deviation)
 
             learning_rate = learning_rate * 0.95
             regularization = regularization * 1.02
@@ -1094,23 +1090,18 @@ def testing_prediction_Funk_SVD(factors, learning_rate, regularization, gradient
         books_avarage_ratings_dict = {}
         for item in books_avarage_ratings_list:
             books_avarage_ratings_dict[item[0]] = item[1]
-
         for item in testing_ratings_rows:
-            test_user_id = item[0]
-            test_book_id = item[1]
+            test_user_id = item[1]
+            test_book_id = item[0]
             test_rating = item[2]
-
             recommendation = global_mean + users_dev[test_user_id] + books_dev[test_book_id]
-            for factor_id in users_p:
-                recommendation += users_p[test_user_id] * books_q[test_book_id]
-
+            for factor_id in range(factors):
+                recommendation += users_p[test_user_id][factor_id] * books_q[test_book_id][factor_id]
             mae_metrics += abs(recommendation - test_rating)
             mse_metrics += (recommendation - test_rating)**2
             mae_metrics_compared += abs(books_avarage_ratings_dict[test_book_id] - test_rating)
             mse_metrics_compared += (books_avarage_ratings_dict[test_book_id] - test_rating)**2
-
             rating_recommendations_count += 1
-
         if rating_recommendations_count != 0:
             mae_metrics = mae_metrics / rating_recommendations_count
             mse_metrics = mse_metrics / rating_recommendations_count
