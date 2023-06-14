@@ -106,6 +106,21 @@ menu_user_recommendation_funk_svd_button.addEventListener("click", function (e) 
             })
 
         }
+        else {
+            let area = document.getElementById('admin__testing')
+            area.innerHTML = `
+                            <div class="admin__recomendation_placeholder">
+                                Заполните все поля.
+                            </div>
+                            <style>
+                                .admin__recomendation_placeholder {
+                                    margin-top: 30px;
+                                    font-size: 24px;
+                                    color: gray;
+                                }
+                            </style>
+                        `
+        }
     });
 
     // -----------------------------------------------------------------------------

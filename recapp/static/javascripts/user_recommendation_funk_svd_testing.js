@@ -91,7 +91,7 @@ menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e)
                     if (request != "") {
                         area.innerHTML += `
                         <div class="admin__testing_block">
-                            <div>Из них предсказано:</div>
+                            <div>Предсказано оценок:</div>
                             <div>` + request["rating_recommendations_count"] + `</div>
                         </div>
                         <div class="admin__testing_block">
@@ -141,6 +141,21 @@ menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e)
 
             })
 
+        }
+        else {
+            let area = document.getElementById('admin__testing')
+            area.innerHTML = `
+                            <div class="admin__recomendation_placeholder">
+                                Заполните все поля.
+                            </div>
+                            <style>
+                                .admin__recomendation_placeholder {
+                                    margin-top: 30px;
+                                    font-size: 24px;
+                                    color: gray;
+                                }
+                            </style>
+                        `
         }
     });
 
