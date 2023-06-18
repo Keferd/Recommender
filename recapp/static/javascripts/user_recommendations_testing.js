@@ -2,6 +2,10 @@ let menu_user_recommendation_testing_button = document.getElementById("admin__me
 
 menu_user_recommendation_testing_button.addEventListener("click", function (e) {
 
+    abortController.abort();
+    const controller = new AbortController();
+    abortController = controller;
+
     let area = document.getElementById('admin__main')
     
     area.innerHTML = `
@@ -56,6 +60,10 @@ menu_user_recommendation_testing_button.addEventListener("click", function (e) {
 
     user_recommendation_testing_button.addEventListener("click", function (e) {
 
+        abortController.abort();
+        const controller = new AbortController();
+        abortController = controller;
+    
         let count_rating = document.getElementById('count_rating').value;
         let number_of_crossings = document.getElementById('number_of_crossings').value;
         let correlation = document.getElementById('correlation').value;
@@ -72,6 +80,41 @@ menu_user_recommendation_testing_button.addEventListener("click", function (e) {
                                             percentage_tested_ratings: percentage_tested_ratings});
 
         formparse = JSON.parse(user_formdata);
+        
+        
+        let area = document.getElementById('admin__testing')
+        area.innerHTML = `
+            <div class="admin__recomendation_placeholder">
+                <img src="static/img/load_icon.png" alt="loading">
+            </div>
+            <style>
+                .admin__recomendation_placeholder {
+                    margin-top: 30px;
+                    font-size: 24px;
+                    color: gray;
+                }
+                
+                .admin__recomendation_placeholder img {
+                    width: 50px; 
+                    height: 50px;
+                    animation: move 0.5s infinite linear;
+                }
+                
+                @keyframes move {
+                    0% {
+                    transform: rotate(0deg);
+                    }
+                    50% {
+                    transform: rotate(180deg);
+                    border-radius: 50%;
+                    }
+                    100% {
+                    transform: rotate(360deg);
+                    }
+                }
+            </style>
+        `
+
 
         if (formparse['count_rating'] != "" && 
             formparse['number_of_crossings'] != "" && 
@@ -85,13 +128,13 @@ menu_user_recommendation_testing_button.addEventListener("click", function (e) {
                 body: user_formdata,
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                signal: controller.signal
             })
             .then(response => {
                 response.json().then(function(data) {
                     console.log("hello")
 
-                    let area = document.getElementById('admin__testing')
                     area.innerHTML = ""
 
                     let request = data['testing'];
@@ -158,7 +201,6 @@ menu_user_recommendation_testing_button.addEventListener("click", function (e) {
             
         }
         else {
-            let area = document.getElementById('admin__testing')
             area.innerHTML = `
                             <div class="admin__recomendation_placeholder">
                                 Заполните все поля.

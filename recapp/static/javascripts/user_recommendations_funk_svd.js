@@ -2,6 +2,10 @@ let menu_user_recommendation_funk_svd_button = document.getElementById("admin__m
 
 menu_user_recommendation_funk_svd_button.addEventListener("click", function (e) {
 
+    abortController.abort();
+    const controller = new AbortController();
+    abortController = controller;
+    
     let area = document.getElementById('admin__main')
     
     area.innerHTML = `
@@ -23,7 +27,7 @@ menu_user_recommendation_funk_svd_button.addEventListener("click", function (e) 
         </div>
         <div class="admin__result">
             <h2>Результаты:</h2>
-            <div class="admin__result-content" id="admin__user-recommendations">
+            <div class="admin__result-content" id="admin__recommendation_funk_svd">
 
             </div>
         </div>
@@ -39,6 +43,10 @@ menu_user_recommendation_funk_svd_button.addEventListener("click", function (e) 
 
     user_recommendation_button.addEventListener("click", function (e) {
 
+        abortController.abort();
+        const controller = new AbortController();
+        abortController = controller;
+        
         let user_id = document.getElementById('user_recommendation_id').value;
         let count_of_output = document.getElementById('count_of_output').value
 
@@ -47,6 +55,39 @@ menu_user_recommendation_funk_svd_button.addEventListener("click", function (e) 
 
         formparse = JSON.parse(user_formdata);
 
+        let area = document.getElementById('admin__recommendation_funk_svd')
+        area.innerHTML = `
+            <div class="admin__recomendation_placeholder">
+                <img src="static/img/load_icon.png" alt="loading">
+            </div>
+            <style>
+                .admin__recomendation_placeholder {
+                    margin-top: 30px;
+                    font-size: 24px;
+                    color: gray;
+                }
+
+                .admin__recomendation_placeholder img {
+                    width: 50px; 
+                    height: 50px;
+                    animation: move 0.5s infinite linear;
+                }
+                
+                @keyframes move {
+                    0% {
+                    transform: rotate(0deg);
+                    }
+                    50% {
+                    transform: rotate(180deg);
+                    border-radius: 50%;
+                    }
+                    100% {
+                    transform: rotate(360deg);
+                    }
+                }
+            </style>
+        `
+
         if (formparse['id'] != "" && formparse['count_of_output'] != "") {
             fetch("/api/create_prediction_Funk_SVD",
             {
@@ -54,52 +95,71 @@ menu_user_recommendation_funk_svd_button.addEventListener("click", function (e) 
                 body: user_formdata,
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                signal: controller.signal
             })
             .then(response => {
                 response.json().then(function(data) {
-                    console.log("hello")
 
-                    let area = document.getElementById('admin__user-recommendations')
                     area.innerHTML = ""
 
                     let request = data['recommendations'];
-                    if (request != "") {
-                        for (let id in request){
-                            area.innerHTML += `
-                            <div class="admin__book">
-                                <img src="` + request[id]['small_image_url'] + `" alt="">
-                                <div class="admin__book_inf">
-                                <div class="admin__book_names">
-                                    <div class="admin__book_name_1">` + request[id]['title'] + `</div>
-                                    <div class="admin__book_name_2">` + request[id]['original_title'] + `</div>
-                                </div>
-                                <div class="admin__book_other">
-                                    <div class="admin__book_year">` + request[id]['original_publication_year'] + `</div>
-                                    , 
-                                    <div class="admin__book_author">` + request[id]['authors'] + `</div>
-                                </div>
-                                </div>
-                            </div>
-                            `
-                        }
+                    let err = data['Ошибка'];
+
+                    console.log(err)
+
+                    if (err == "Нет матриц"){
                         area.innerHTML += `
-                            <link rel="stylesheet" href="/static/styles/user_recommendations.css">
-                        `
+                                <div class="admin__recomendation_placeholder">
+                                    Ошибка, необходимо сгенерировать матрицы факторов.
+                                </div>
+                                <style>
+                                    .admin__recomendation_placeholder {
+                                        margin-top: 30px;
+                                        font-size: 24px;
+                                        color: gray;
+                                    }
+                                </style>
+                            `
                     }
                     else {
-                        area.innerHTML += `
-                            <div class="admin__recomendation_placeholder">
-                                Для пользователя id/` + formparse['id'] + ` нет рекомендаций.
-                            </div>
-                            <style>
-                                .admin__recomendation_placeholder {
-                                    margin-top: 30px;
-                                    font-size: 24px;
-                                    color: gray;
-                                }
-                            </style>
-                        `
+                        if (typeof(request) === 'object') {
+                            for (let id in request){
+                                area.innerHTML += `
+                                <div class="admin__book">
+                                    <img src="` + request[id]['small_image_url'] + `" alt="">
+                                    <div class="admin__book_inf">
+                                    <div class="admin__book_names">
+                                        <div class="admin__book_name_1">` + request[id]['title'] + `</div>
+                                        <div class="admin__book_name_2">` + request[id]['original_title'] + `</div>
+                                    </div>
+                                    <div class="admin__book_other">
+                                        <div class="admin__book_year">` + request[id]['original_publication_year'] + `</div>
+                                        , 
+                                        <div class="admin__book_author">` + request[id]['authors'] + `</div>
+                                    </div>
+                                    </div>
+                                </div>
+                                `
+                            }
+                            area.innerHTML += `
+                                <link rel="stylesheet" href="/static/styles/user_recommendations.css">
+                            `
+                        }
+                        else {
+                            area.innerHTML += `
+                                <div class="admin__recomendation_placeholder">
+                                    Ошибка, попробуйте ввести другие данные.
+                                </div>
+                                <style>
+                                    .admin__recomendation_placeholder {
+                                        margin-top: 30px;
+                                        font-size: 24px;
+                                        color: gray;
+                                    }
+                                </style>
+                            `
+                        }
                     }
                 })
 
@@ -107,7 +167,6 @@ menu_user_recommendation_funk_svd_button.addEventListener("click", function (e) 
 
         }
         else {
-            let area = document.getElementById('admin__testing')
             area.innerHTML = `
                             <div class="admin__recomendation_placeholder">
                                 Заполните все поля.

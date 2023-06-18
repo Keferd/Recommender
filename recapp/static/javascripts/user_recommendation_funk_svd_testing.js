@@ -2,6 +2,10 @@ let menu_user_recommendation_funk_svd_testing = document.getElementById("admin__
 
 menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e) {
 
+    abortController.abort();
+    const controller = new AbortController();
+    abortController = controller;
+    
     let area = document.getElementById('admin__main')
     
     area.innerHTML = `
@@ -36,7 +40,7 @@ menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e)
         </div>
         <div class="admin__result">
             <h2>Результаты:</h2>
-            <div class="admin__result-content" id="admin__testing">
+            <div class="admin__result-content" id="admin__recommendation_funk_svd_testing">
 
             </div>
         </div>
@@ -52,6 +56,10 @@ menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e)
 
     user_recommendation_funk_svd_testing_button.addEventListener("click", function (e) {
 
+        abortController.abort();
+        const controller = new AbortController();
+        abortController = controller;
+        
         let factors = document.getElementById('factors').value;
         let learning_rate = document.getElementById('learning_rate').value;
         let regularization = document.getElementById('regularization').value;
@@ -67,6 +75,39 @@ menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e)
 
         formparse = JSON.parse(user_formdata);
 
+        let area = document.getElementById('admin__recommendation_funk_svd_testing')
+        area.innerHTML = `
+            <div class="admin__recomendation_placeholder">
+                <img src="static/img/load_icon.png" alt="loading">
+            </div>
+            <style>
+                .admin__recomendation_placeholder {
+                    margin-top: 30px;
+                    font-size: 24px;
+                    color: gray;
+                }
+
+                .admin__recomendation_placeholder img {
+                    width: 50px; 
+                    height: 50px;
+                    animation: move 0.5s infinite linear;
+                }
+                
+                @keyframes move {
+                    0% {
+                    transform: rotate(0deg);
+                    }
+                    50% {
+                    transform: rotate(180deg);
+                    border-radius: 50%;
+                    }
+                    100% {
+                    transform: rotate(360deg);
+                    }
+                }
+            </style>
+        `;
+
         if (formparse['factors'] != "" && 
             formparse['learning_rate'] != "" && 
             formparse['regularization'] != "" && 
@@ -78,16 +119,15 @@ menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e)
                 body: user_formdata,
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                signal: controller.signal
             })
             .then(response => {
                 response.json().then(function(data) {
-                    console.log("hello")
-
-                    let area = document.getElementById('admin__testing')
                     area.innerHTML = ""
 
                     let request = data['testing'];
+                    
                     if (request != "") {
                         area.innerHTML += `
                         <div class="admin__testing_block">
@@ -95,33 +135,55 @@ menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e)
                             <div>` + request["rating_recommendations_count"] + `</div>
                         </div>
                         <div class="admin__testing_block">
-                            <div>Метрика MAE по Funk SVD:</div>
-                            <div>` + request["mae_metrics"] + `</div>
-                        </div>
-                        <div class="admin__testing_block">
-                            <div>Метрика MAE по средним оценкам:</div>
-                            <div>` + request["mae_metrics_compared"] + `</div>
-                        </div>
-                        <div class="admin__testing_block">
-                            <div>Метрика MSE по Funk SVD:</div>
-                            <div>` + request["mse_metrics"] + `</div>
-                        </div>
-                        <div class="admin__testing_block">
-                            <div>Метрика MSE по средним оценкам:</div>
-                            <div>` + request["mse_metrics_compared"] + `</div>
-                        </div>
-                        <div class="admin__testing_block">
-                            <div>Метрика RMSE по Funk SVD:</div>
-                            <div>` + request["rmse_metrics"] + `</div>
-                        </div>
-                        <div class="admin__testing_block">
                             <div>Метрика RMSE по средним оценкам:</div>
                             <div>` + request["rmse_metrics_compared"] + `</div>
                         </div>
-                        `
+                        `;
+
+                        info = request["rmse"]
+
+                        new_area = `
+                            <table class="result_table">
+                                <thead>
+                                    <tr>
+                                        <th>Итерация</th>
+                                        <th>Обучающий RMSE</th>
+                                        <th>Тестовый RMSE</th>
+                                    </tr>
+                                </thead>
+                            <tbody>
+                            `;
+
+                        if (info != "") {
+                            count = 1
+                            for (let id in info){
+                                new_area +=`
+                                <tr>
+                                    <td>` + count + `</td>
+                                    <td>` + info[id]["init"] + `</td>
+                                    <td>` + info[id]["test"] + `</td>
+                                </tr>
+                                `;
+                                count = count + 1
+                            };
+
+                            new_area += `
+                                </tbody>
+                                </table>
+                                <style>
+                                    .result_table {
+                                        border-spacing: 10px;
+                                    }
+                                </style>
+                                <link rel="stylesheet" href="/static/styles/user_recommendations.css">
+                            `;
+                            area.innerHTML += new_area
+                        }
+
+
                         area.innerHTML += `
                             <link rel="stylesheet" href="/static/styles/testing.css">
-                        `
+                        `;
                     }
                     else {
                         area.innerHTML += `
@@ -135,7 +197,7 @@ menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e)
                                     color: gray;
                                 }
                             </style>
-                        `
+                        `;
                     }
                 })
 
@@ -143,7 +205,6 @@ menu_user_recommendation_funk_svd_testing.addEventListener("click", function (e)
 
         }
         else {
-            let area = document.getElementById('admin__testing')
             area.innerHTML = `
                             <div class="admin__recomendation_placeholder">
                                 Заполните все поля.

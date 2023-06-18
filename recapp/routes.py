@@ -1,4 +1,5 @@
 from . import dbservice
+from . import svd
 from recapp import app, db
 # Подключаем библиотеку для "рендеринга" html-шаблонов из папки templates
 from flask import render_template, make_response, request, Response, jsonify, json, session, redirect, url_for
@@ -126,19 +127,19 @@ def post_frequency_of_users_table():
 # Получение рекомендаций пользователю по коэффициенту корреляции Пирсона
 @app.route('/api/create_prediction_Pearson', methods=['POST'])
 def post_prediction_Pearson():
-    if not request.json or not 'id' in request.json or not 'count_rating' in request.json or not 'number_of_crossings' in request.json or not 'correlation' in request.json or not 'normalization_number' in request.json or not 'count_of_output' in request.json:
+    if not request.json or not 'id' in request.json or not 'count_of_output' in request.json:
         return bad_request()
     else:
-        response = dbservice.create_prediction_Pearson(request.json['id'],request.json['count_rating'],request.json['number_of_crossings'],request.json['correlation'],request.json['normalization_number'],request.json['count_of_output'])
+        response = dbservice.create_prediction_Pearson(request.json['id'], request.json['count_of_output'])
         return json_response(response)
     
 # Funk SVD
 @app.route('/api/create_tables_funk_svd', methods=['POST'])
 def post_tables_funk_svd():
-    if not request.json or not 'factors' in request.json or not 'learning_rate' in request.json or not 'regularization' in request.json or not 'gradient_count' in request.json:
+    if not request.json or not 'factors' in request.json or not 'learning_rate' in request.json or not 'regularization' in request.json:
         return bad_request()
     else:
-        response = dbservice.create_tables_funk_svd(request.json['factors'], request.json['learning_rate'], request.json['regularization'], request.json['gradient_count'])
+        response = dbservice.create_tables_funk_svd(request.json['factors'], request.json['learning_rate'], request.json['regularization'])
         return json_response(response)
 
 # Рекомендации по Funk SVD
@@ -147,7 +148,7 @@ def post_prediction_Funk_SVD():
     if not request.json or not 'id' in request.json or not 'count_of_output' in request.json:
         return bad_request()
     else:
-        response = dbservice.create_prediction_Funk_SVD(request.json['id'], request.json['count_of_output'])
+        response = dbservice.create_prediction_funk_svd(request.json['id'], request.json['count_of_output'])
         return json_response(response)
 
 # Тестирование рекомендаций по коэффициенту корреляции Пирсона
@@ -167,7 +168,11 @@ def post_testing_prediction_Funk_SVD():
     else:
         response = dbservice.testing_prediction_Funk_SVD(request.json['factors'], request.json['learning_rate'], request.json['regularization'], request.json['gradient_count'], request.json['percentage_tested_ratings'])
         return json_response(response)
-
+    
+@app.route('/api/work', methods=['POST'])
+def work():
+    response = svd.work()
+    return json_response(response)
 
 
 
