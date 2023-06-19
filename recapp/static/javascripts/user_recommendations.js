@@ -134,7 +134,7 @@ menu_user_recommendation_button.addEventListener("click", function (e) {
                         else {
                             area.innerHTML += `
                                 <div class="admin__recomendation_placeholder">
-                                    Ошибка, слишком мало данных для получения рекомендаций.
+                                    Ошибка, слишком мало данных для получения рекомендаций. Попробуйте выбрать пользователя с большим количеством оценок.
                                 </div>
                                 <style>
                                     .admin__recomendation_placeholder {
