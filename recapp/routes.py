@@ -175,7 +175,13 @@ def work():
     return json_response(response)
 
 
-
+@app.route('/api/users_by_filter', methods=['POST'])
+def post_users_by_filter():
+    if not request.json or not 'count_rating' in request.json:
+        return bad_request()
+    else:
+        response = dbservice.create_users_by_filter(request.json['count_rating'])
+        return json_response(response)
 
 
 

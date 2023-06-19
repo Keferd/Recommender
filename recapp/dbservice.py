@@ -1491,7 +1491,25 @@ def testing_prediction_Funk_SVD(factors, learning_rate, regularization, gradient
 
 
 
+def create_users_by_filter(count_rating):
+    try:
+        users_row = db.session.execute(f"SELECT * FROM users WHERE count_rating >= {count_rating}").fetchall()
+        users_dict = {}
+        for item in users_row:
+            users_dict[item[0]] = {}
+            users_dict[item[0]]["id"] = item[0]
+            users_dict[item[0]]["av"] = item[1]
+            users_dict[item[0]]["co"] = item[2]
 
+        if users_dict.__len__() == 0:
+            return {'Ошибка': 'Ошибка'}
+
+        return {'table': users_dict}
+    except Exception as e:
+        db.session.rollback()
+        return {'message': str(e)}
+
+    
 
 
 
