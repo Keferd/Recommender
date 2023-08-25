@@ -492,7 +492,7 @@ def work():
         factors_count = 10
         epoch_count = 100
         learning_rate = 0.05
-        regularization = 0.05
+        regularization = 0.1
         percentage_val_ratings = 0.01
         global_mean, books_factors, users_factors = funk_svd(rows_train_rating, factors_count, epoch_count, learning_rate, regularization, percentage_val_ratings)
         test_funk_svd, test_funk_svd_count = get_rmse_with_count(rows_test_rating, books_factors, users_factors, global_mean, factors_count)
@@ -502,10 +502,10 @@ def work():
         
 
         # Тестирование рекомендаций по корреляции Пирсона
-        rmse_pearson, rmse_pearson_count = pearson_testing(rows_train_rating, rows_test_rating)
-        print("-------------------------------------------------------------------------------------------------------")
-        print("RMSE по корреляции Пирсона: ", rmse_pearson, " Получено ", rmse_pearson_count, " оценок из ", rows_test_rating.__len__())
-        result['rmse_pearson'] = rmse_pearson
+        # rmse_pearson, rmse_pearson_count = pearson_testing(rows_train_rating, rows_test_rating)
+        # print("-------------------------------------------------------------------------------------------------------")
+        # print("RMSE по корреляции Пирсона: ", rmse_pearson, " Получено ", rmse_pearson_count, " оценок из ", rows_test_rating.__len__())
+        # result['rmse_pearson'] = rmse_pearson
 
 
         return result
